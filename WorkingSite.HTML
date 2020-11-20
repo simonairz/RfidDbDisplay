@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- These are some semantic UI components for styling -->
+  <!-- <Semantic> -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css"
+    integrity="sha512-8bHTC73gkZ7rZ7vpqUQThUDhqcNFyYi2xgDgPDHc+GXVGHXq+xPjynxIopALmOPqzo9JZj0k6OqqewdGO3EsrQ=="
+    crossorigin="anonymous" />
+  <script
+    src="https://code.jquery.com/jquery-3.1.1.min.js"
+    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+    crossorigin="anonymous"></script>
+  <script 
+    src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"
+    integrity="sha512-dqw6X88iGgZlTsONxZK9ePmJEFrmHwpuMrsUChjAw1mRUhUITE5QU9pkcSox+ynfLhL15Sv2al5A0LVyDCmtUw=="
+    crossorigin="anonymous"></script>
+  <!-- </Semantic> -->
+  <script>
+    const Http = new XMLHttpRequest();
+    const url='https://rfidbackend.azurewebsites.net/api/RFIDData';
+    Http.open("GET", url);
+    Http.send();
+    var response = "";
+    var allEntries = [];
+    Http.onreadystatechange = (e) => {
+        if(Http.readyState === XMLHttpRequest.DONE) {
+            response = Http.responseText;
+            var allData = JSON.parse(response);
+
+            allData.forEach(colVal => {
+                var val = JSON.parse(colVal["val"]);
+                val.forEach(entry => {
+                    allEntries.push(entry);
+                });
+            });
+            generate_table(allEntries);
+        }
+    }
+
+    // template from https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Traversing_an_HTML_table_with_JavaScript_and_DOM_Interfaces
+    function generate_table(entries) {
+        var tableDiv = document.getElementById("infoTable");
+
+        // creates a <table> element and a <tbody> element
+        var tbl = document.createElement("table");
+
+        // Add semantic UI classes
+        tbl.classList.add("ui");
+        tbl.classList.add("celled");
+        tbl.classList.add("table");
+
+        // create header row
+        var tblHead = document.createElement("thead");
+        var headerRow = document.createElement("tr");
+        createCellInHeader("First Name", headerRow);
+        createCellInHeader("Last Name", headerRow);
+        createCellInHeader("Id", headerRow);
+        createCellInHeader("Is Out", headerRow);
+        createCellInHeader("Location", headerRow);
+        createCellInHeader("Time", headerRow);
+        tblHead.appendChild(headerRow);
+        tbl.appendChild(tblHead);
+
+        var tblBody = document.createElement("tbody");
+
+        // creating all cells
+        entries.forEach(entry => {
+            var row = document.createElement("tr");
+            const na = "N/A";
+            createCellInRow(entry["FirstName"] || na, row);
+            createCellInRow(entry["LastName"] || na, row);
+            createCellInRow(entry["IdNumber"] || na, row);
+            createCellInRow(entry["IsOut"] || na, row);
+            createCellInRow(entry["PersonLocation"] || na, row);
+            createCellInRow(entry["TimeAtSign"] || na, row);
+            tblBody.appendChild(row);
+        });
+
+        // put the <tbody> in the <table>
+        tbl.appendChild(tblBody);
+        tableDiv.appendChild(tbl);
+        // sets the border attribute of tbl to 2;
+        tbl.setAttribute("border", "1");
+    }
+
+    function createCellInRow(value, row)
+    {
+        var cell = document.createElement("td");
+        var cellText = document.createTextNode(value);
+        cell.appendChild(cellText);
+        row.appendChild(cell);
+    }
+
+    function createCellInHeader(value, row)
+    {
+        var cell = document.createElement("th");
+        var cellText = document.createTextNode(value);
+        cell.appendChild(cellText);
+        row.appendChild(cell);
+    }
+
+  </script>
+  <style>
+    h1 {
+      text-align: center;
+      margin-top: 30em;
+    }
+    .ui.text.container {
+        margin: 3em;
+    }
+    .empty {
+        margin: 3em;
+    }
+    </style>
+  <title>RFID Information</title>
+</head>
+
+<body class="basic minimal">
+    <div class="ui text container">
+        <h1 class="ui header">My Table</h1>
+        <div class="empty"></div>
+        <div id="infoTable" class="ui container center aligned"></div>
+    </div>
+</body>
+
+</html>
